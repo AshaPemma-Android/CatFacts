@@ -40,6 +40,7 @@ com.example.catfacts
 ## 📦 Tech Stack
 
 - **Kotlin**
+- **Jetpack Compose** – Modern UI toolkit
 - **Retrofit** – for network requests
 - **Hilt** – for dependency injection
 - **Coroutines + Flow** – for async & reactive code
