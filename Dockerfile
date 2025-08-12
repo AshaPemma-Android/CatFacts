@@ -16,14 +16,19 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Install Android SDK command-line tools
 ENV ANDROID_SDK_ROOT=/sdk
-RUN mkdir -p /sdk/cmdline-tools/latest
-WORKDIR /sdk/cmdline-tools/latest
+RUN mkdir -p /sdk/cmdline-tools
+WORKDIR /sdk/cmdline-tools
 RUN curl -o sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip && \
-    unzip sdk.zip && rm sdk.zip
+    unzip sdk.zip && rm sdk.zip && \
+    mkdir -p /sdk/cmdline-tools/latest && \
+    mv cmdline-tools/* /sdk/cmdline-tools/latest/ && \
+    rmdir cmdline-tools
+
+ENV PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
 
 # Accept licenses and install required SDK packages
-RUN yes | /sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/sdk --licenses
-RUN /sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/sdk \
+RUN yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
+RUN sdkmanager --sdk_root=${ANDROID_SDK_ROOT} \
     "platform-tools" \
     "platforms;android-33" \
     "build-tools;33.0.2"
