@@ -1,0 +1,75 @@
+name: Android Build & Deploy Reusable
+
+on:
+  workflow_call:
+    inputs:
+      target-environment:
+        description: "Target environment (test, prod)"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+  deploy_test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: debug-apk
+          path: ./apk
+
+      - name: Deploy to Test Environment
+        run: |
+          echo "Deploying APK to TEST environment..."
+          # Add test deployment logic here
+
+  deploy_prod:
+    runs-on: ubuntu-latest
+    needs: deploy_test
+    if: ${{ inputs.target-environment == 'prod' }}
+    steps:
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: debug-apk
+          path: ./apk
+
+      - name: Deploy to Prod Environment
+        run: |
+          echo "Deploying APK to PROD environment..."
+          # Add prod deployment logic here
