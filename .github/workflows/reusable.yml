@@ -1,0 +1,15 @@
+name: ReUsable Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      TARGET_ENVIRONMENT:
+        description: "Target environment (test, prod)"
+        required: true
+        default: test
+
+jobs:
+  run-reusable:
+    uses: ./.github/workflows/multistagereusable.yml
+    with:
+      target-environment: ${{ github.event.inputs.TARGET_ENVIRONMENT }}
