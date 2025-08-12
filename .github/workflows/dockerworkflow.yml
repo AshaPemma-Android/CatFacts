@@ -1,0 +1,33 @@
+name: Android Build via Docker
+
+on:
+  workflow_dispatch: # manual trigger
+  push:
+    branches:
+      - main
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: docker build -t catfacts-android .
+
+      - name: Create Output Folder
+        run: mkdir -p output
+
+      - name: Copy APK from Docker Container
+        run: |
+          container_id=$(docker create catfacts-android)
+          docker cp $container_id:/app/app/build/outputs/apk/debug/app-debug.apk output/
+          docker rm $container_id
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CatFacts-Debug-APK
+          path: output/app-debug.apk
